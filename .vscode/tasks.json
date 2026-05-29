@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Install Frontend Dependencies",
+      "type": "shell",
+      "command": "docker compose run --rm -v $(pwd)/frontend:/frontend frontend sh -c",
+      "args": ["npm install ${input:dependencyName}"],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "dependencyName",
+      "type": "promptString",
+      "description": "Enter the dependency to install",
+      "default": ""
+    }
+  ]
+}
