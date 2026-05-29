@@ -36,17 +36,24 @@ function Navbar({ user }) {
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/budgets">
+            <span class="material-symbols-outlined">money_range</span>
+            <span>Budgets</span>
+          </NavLink>
+        </li>
+        <li className="nav-item">
+          <div className="spacer"></div>
+          <NavLink to="/accounts">
             <span class="material-symbols-outlined">
               account_balance_wallet
             </span>
-            <span>Budgets</span>
+            <span>Accounts</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/cards">
             <span class="material-symbols-outlined">payment</span>
-            <span>Cards</span>
+            <span>Credit Cards</span>
           </NavLink>
         </li>
         <li className="nav-item">

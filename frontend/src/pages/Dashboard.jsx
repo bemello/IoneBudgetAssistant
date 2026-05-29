@@ -10,6 +10,20 @@ function Dashboard({ user }) {
                 <h3 className="card-title">Balance</h3>
                 <div className="card-actions"></div>
               </div>
+              <div className="card-content">
+                <div className="balance-summary">
+                  <h1 className="amount">€31,115.00</h1>
+                  <span className="material-symbols-outlined">
+                    visibility_off
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">Credit Cards</h3>
+                <div className="card-actions"></div>
+              </div>
               <div className="card-content"></div>
             </div>
           </section>

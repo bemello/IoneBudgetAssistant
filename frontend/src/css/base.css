@@ -273,7 +273,7 @@ nav {
 
     & > .secondary {
       --grid-columns: 1fr;
-      --grid-rows: 1fr;
+      --grid-rows: auto;
     }
 
     & > section {
@@ -299,6 +299,12 @@ nav {
   border: 1px solid oklch(from var(--color-secondary) 0.875 c h);
   border-radius: var(--border-radius-xl);
   padding: var(--default-block-padding);
+}
+
+.card:not(.card-sm) {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: calc(var(--default-spacing-unit) * 4);
 }
 
 .card-sm {
@@ -371,5 +377,18 @@ nav {
         color: var(--color-accent-warm);
       }
     }
+  }
+}
+
+.balance-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: calc(var(--default-spacing-unit) * 4);
+
+  & > .material-symbols-outlined {
+    height: 100%;
+    align-content: center;
+    padding-top: 5px;
   }
 }
