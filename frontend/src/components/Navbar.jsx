@@ -15,35 +15,35 @@ function Navbar({ user }) {
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/dashboard">
-            <span class="material-symbols-outlined">dashboard</span>
+            <span className="material-symbols-outlined">dashboard</span>
             <span>Dashboard</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/transactions">
-            <span class="material-symbols-outlined">receipt_long</span>
+            <span className="material-symbols-outlined">receipt_long</span>
             <span>Transactions</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
-          <NavLink to="/payments">
-            <span class="material-symbols-outlined">payments</span>
+          <a href="#">
+            <span className="material-symbols-outlined">payments</span>
             <span>Payments</span>
-          </NavLink>
+          </a>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/budgets">
-            <span class="material-symbols-outlined">money_range</span>
+            <span className="material-symbols-outlined">money_range</span>
             <span>Budgets</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/accounts">
-            <span class="material-symbols-outlined">
+            <span className="material-symbols-outlined">
               account_balance_wallet
             </span>
             <span>Accounts</span>
@@ -52,43 +52,43 @@ function Navbar({ user }) {
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/cards">
-            <span class="material-symbols-outlined">payment</span>
+            <span className="material-symbols-outlined">payment</span>
             <span>Credit Cards</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/investments">
-            <span class="material-symbols-outlined">finance_mode</span>
+            <span className="material-symbols-outlined">finance_mode</span>
             <span>Investments</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/vaults">
-            <span class="material-symbols-outlined">savings</span>
+            <span className="material-symbols-outlined">savings</span>
             <span>Vaults</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/reports">
-            <span class="material-symbols-outlined">insert_chart</span>
+            <span className="material-symbols-outlined">insert_chart</span>
             <span>Reports</span>
           </NavLink>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
           <NavLink to="/settings">
-            <span class="material-symbols-outlined">settings</span>
+            <span className="material-symbols-outlined">settings</span>
             <span>Settings</span>
           </NavLink>
         </li>
       </ul>
       <div className="nav-footer">
-        <NavLink to="/logout">
-          <span class="material-symbols-outlined">logout</span>
-          Logout
+        <NavLink to="/logout" className="btn symbol link">
+          <span className="material-symbols-outlined">logout</span>
+          <span className="label">Logout</span>
         </NavLink>
       </div>
     </nav>
