@@ -1,112 +1,220 @@
 import { DatePicker, PickersLayout } from "@mui/x-date-pickers";
-import { styled } from "@mui/material/styles";
+import { styled, createTheme, ThemeProvider } from "@mui/material/styles";
 
-function CustomDatePicker({ label }) {
-  const StyledPickersLayout = styled(PickersLayout)({
-    ".MuiPickerDay-root": {
-      color: "var(--color-secondary)",
-      borderRadius: "var(--border-radius-full)",
-      "&:hover": {
-        backgroundColor: "var(--color-base)",
+function CustomDatePicker({
+  label,
+  disablePortal = false,
+  value,
+  onChange,
+  views = ["year", "month", "day"],
+}) {
+  const style = getComputedStyle(document.body);
+  const primaryColor = style.getPropertyValue("--color-primary-hex");
+  const secondaryColor = style.getPropertyValue("--color-secondary-hex");
+  const tertiaryColor = style.getPropertyValue("--color-tertiary-hex");
+  const accentColor = style.getPropertyValue("--color-accent-hex");
+  const borderColor = style.getPropertyValue("--base-border-color");
+
+  const width = "16rem";
+  const height = "18rem";
+
+  const customTheme = createTheme({
+    palette: {
+      calendarButton: {
+        main: "hsl(from " + primaryColor + " h s l / 0.75)",
       },
-      "&:focus,&:focus-visible": {
-        backgroundColor: "var(--color-base)",
+    },
+  });
+
+  const StyledPickersLayout = styled(PickersLayout)({
+    backgroundColor: "oklch(from " + secondaryColor + " 0.75 c h / 1)",
+    borderRadius: "var(--border-radius-lg)",
+    height: height,
+    width: width,
+    overflow: "hidden",
+
+    ".MuiDayCalendar-weekDayLabel": {
+      color: tertiaryColor,
+      fontWeight: "700",
+      height: "1.75rem",
+      width: "1.75rem",
+      fontSize: "var(--text-xs)",
+    },
+    ".MuiPickerDay-root": {
+      color: primaryColor,
+      fontSize: "var(--text-xs)",
+      borderRadius: "var(--border-radius-full)",
+      height: "1.75rem",
+      width: "1.75rem",
+      "&:hover": {
+        backgroundColor: secondaryColor,
+      },
+      "&:focus-visible": {
+        backgroundColor: secondaryColor,
       },
       "&:is(.Mui-selected)": {
-        backgroundColor: "var(--color-accent)",
+        backgroundColor: accentColor,
       },
     },
     ".MuiPickerDay-today": {
-      color: "var(--color-primary)",
+      color: primaryColor,
       fontSize: "var(--text-sm)",
       fontWeight: "700",
       borderRadius: "var(--border-radius-full)",
       outline: "none",
       backgroundColor: "transparent",
       "&:hover": {
-        color: "var(--color-primary)",
-        backgroundColor: "var(--color-base)",
+        color: primaryColor,
+        backgroundColor: secondaryColor,
       },
+    },
+    "& .MuiDateCalendar-root": {
+      width: width,
+      height: "auto",
+    },
+    "& .MuiPickersCalendarHeader-root": {
+      paddingLeft: "12px",
+      paddingRight: "0",
+    },
+    "& .MuiDayCalendar-slideTransition": {
+      minHeight: "10rem",
     },
   });
 
   return (
-    <DatePicker
-      label={label}
-      slotProps={{
-        textField: { size: "small" },
-        actionBar: {
-          actions: ["clear", "today"],
-          sx: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            padding: "0",
-            "& .MuiButton-root": {
-              color: "var(--color-secondary)",
-              fontSize: "var(--text-xs)",
-              fontFamily: "var(--font-family)",
-
+    <ThemeProvider theme={customTheme}>
+      <DatePicker
+        label={label}
+        value={value}
+        views={views}
+        onChange={onChange}
+        slotProps={{
+          textField: {
+            size: "small",
+            sx: {
+              justifyContent: "center",
+              "& .MuiInputLabel-root": {
+                color: primaryColor,
+                opacity: 0.75,
+                fontSize: "var(--text-sm)",
+              },
+              "& .MuiPickersOutlinedInput-root": {
+                border: "1px solid",
+                borderColor: borderColor,
+                height: "var(--input-height)",
+                borderRadius: "var(--border-radius-md)",
+                "&:hover": {
+                  borderColor: secondaryColor,
+                  "& .MuiPickersOutlinedInput-notchedOutline": {
+                    border: "none",
+                  },
+                },
+                "&.Mui-focused:not(.Mui-error) ": {
+                  outline: "2px solid",
+                  outlineColor: secondaryColor,
+                  "& .MuiPickersOutlinedInput-notchedOutline": {
+                    border: "none",
+                  },
+                },
+                "& .MuiPickersSectionList-root": {
+                  color: primaryColor,
+                  opacity: 0.75,
+                  fontSize: "var(--text-sm)",
+                },
+              },
+            },
+          },
+          openPickerButton: {
+            color: "calendarButton",
+            sx: {
               "&:hover": {
-                backgroundColor: "transparent",
-                color: "var(--color-primary)",
-              },
-              "&:focus,&:focus-visible": {
-                backgroundColor: "transparent",
-                color: "var(--color-primary)",
+                color: secondaryColor,
               },
             },
           },
-        },
-      }}
-      slots={{
-        layout: StyledPickersLayout,
-      }}
-      sx={{
-        ".MuiPickersInputBase-root": {
-          borderRadius: "var(--border-radius-md)",
-          color: "var(--color-primary)",
-          fontSize: "var(--text-sm)",
-          fontWeight: "var(--font-weight-medium)",
-          fontFamily: "var(--font-family)",
-          minHeight: "2.5rem",
-        },
-        "& .MuiPickersOutlinedInput-root": {
-          "& fieldset": {
-            borderColor: "var(--base-border-color)",
-            minHeight: "var(--input-height)",
-            padding: "0",
+          actionBar: {
+            actions: ["clear", "today"],
+            sx: {
+              flexDirection: "row",
+              justifyContent: "space-between",
+              padding: "0",
+              "& .MuiButton-root": {
+                color: tertiaryColor,
+                fontSize: "var(--text-xs)",
+                fontFamily: "var(--font-family)",
 
-            "& > legend": {
-              width: "auto",
-              marginLeft: "calc(var(--default-spacing-unit) * 1.5)",
+                "&:hover": {
+                  backgroundColor: "transparent",
+                  color: primaryColor,
+                },
+                "&:focus-visible": {
+                  backgroundColor: "transparent",
+                  color: primaryColor,
+                },
+              },
             },
           },
-          "&:hover fieldset": {
-            borderColor: "var(--base-border-color)",
-          },
-          "&.Mui-focused:not(.Mui-error) .MuiPickersOutlinedInput-notchedOutline":
-            {
-              borderColor: "var(--color-accent)",
-              borderWidth: "2px",
+          popper: {
+            disablePortal: disablePortal,
+            sx: {
+              width: width,
+              zIndex: 1000,
+              overflow: "hidden",
+              ".MuiPaper-root": {
+                width: width,
+                height: height,
+                backgroundColor: "transparent",
+                borderRadius: "var(--border-radius-lg)",
+              },
             },
-          "& .MuiPickersSectionList-root": {
-            padding: "0",
           },
-        },
-        "& .MuiFormControl-root .MuiPickersTextField-root": {
-          border: "1px solid green",
-        },
-        "& .MuiFormLabel-root": {
-          fontSize: "var(--text-sm)",
-          color: "var(--color-primary)",
-          opacity: "0.5",
-          "&.Mui-focused": {
-            color: "var(--color-primary)",
-            opacity: "1",
+          layout: {
+            sx: {
+              color: tertiaryColor,
+              button: {
+                color: tertiaryColor,
+              },
+            },
           },
-        },
-      }}
-    />
+        }}
+        slots={{
+          layout: StyledPickersLayout,
+        }}
+        sx={{
+          ".MuiPickersInputBase-root": {
+            borderRadius: "var(--border-radius-md)",
+            color: primaryColor,
+            fontSize: "var(--text-sm)",
+            fontWeight: "var(--font-weight-medium)",
+            fontFamily: "var(--font-family)",
+            minHeight: "2.5rem",
+          },
+          "& .MuiPickersOutlinedInput-root": {
+            "& fieldset": {
+              borderColor: "var(--base-border-color)",
+              minHeight: "var(--input-height)",
+              padding: "0",
+
+              "& > legend": {
+                width: "auto",
+                marginLeft: "calc(var(--default-spacing-unit) * 1.5)",
+              },
+            },
+            "&:hover fieldset": {
+              borderColor: primaryColor,
+            },
+            "&.Mui-focused:not(.Mui-error) .MuiPickersOutlinedInput-notchedOutline":
+              {
+                borderColor: secondaryColor,
+                borderWidth: "2px",
+              },
+            "& .MuiPickersSectionList-root": {
+              padding: "0",
+            },
+          },
+        }}
+      />
+    </ThemeProvider>
   );
 }
 

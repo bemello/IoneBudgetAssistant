@@ -1,22 +1,45 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Climate+Crisis:YEAR@1979&family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Outfit:wght@100..900&family=Prosto+One&family=Style+Script&amp;display=swap"
+      rel="stylesheet"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ione Budget Assistant | Personal Finance Tracker</title>
+  </head>
 
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Climate+Crisis:YEAR@1979&family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Outfit:wght@100..900&family=Prosto+One&family=Style+Script&amp;display=swap"
-    rel="stylesheet" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ione Budget Assistant | Personal Finance Tracker</title>
-</head>
+  <body id="root">
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+      <filter
+        id="lensFilter"
+        x="0%"
+        y="0%"
+        width="100%"
+        height="100%"
+        filterUnits="objectBoundingBox"
+      >
+        <feComponentTransfer in="SourceAlpha" result="alpha">
+          <feFuncA type="identity" />
+        </feComponentTransfer>
 
-<body>
-  <div id="root" class="wrapper"></div>
-  <script type="module" src="/src/main.jsx"></script>
-</body>
+        <feGaussianBlur in="alpha" stdDeviation="50" result="blur" />
 
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="blur"
+          scale="50"
+          xChannelSelector="A"
+          yChannelSelector="A"
+        />
+      </filter>
+    </svg>
+    <!-- <div id="smooth-wrapper" class="wrapper"></div> -->
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

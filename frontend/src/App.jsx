@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Outlet,
+  redirect,
+} from "react-router-dom";
 import { useCookies } from "react-cookie";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -15,95 +20,151 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
+import Accounts from "./pages/Accounts";
 import Budgets from "./pages/Budgets";
 import Reports from "./pages/Reports";
 import Vaults from "./pages/Vaults";
 import CreditCards from "./pages/CreditCards";
 import Investments from "./pages/Investments";
+import Login from "./pages/Login";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
 
-function Logout({ setUser }) {
-  cookies.remove(ACCESS_TOKEN);
+function Logout({ setUser, removeCookies }) {
+  removeCookies(ACCESS_TOKEN);
   setUser(null);
-  return <Home />;
+  redirect("/");
 }
 
-function RegisterAndLogout() {
-  cookies.remove(ACCESS_TOKEN);
+function RegisterAndLogout({ removeCookies }) {
+  removeCookies(ACCESS_TOKEN);
   return "";
 }
 
 function App() {
-  const [cookies, setCookie, removeCookie] = useCookies([ACCESS_TOKEN]);
-  const [user, setUser] = useState(() => {
-    return cookies.access_token ? JSON.parse(cookies.access_token) : null;
-  });
+  const [cookies, setCookies, removeCookies] = useCookies([ACCESS_TOKEN]);
+  const [user, setUser] = useState({});
 
   useEffect(() => {}, [user]);
 
-  function Layout() {
+  function LandingPageLayout() {
+    return <Outlet />;
+  }
+
+  function BaseLayout() {
     return (
-      <div className="container">
-        <ScrollToTop />
-        <Navbar user={user} />
-        <main className="main-content">
-          <Outlet />
-        </main>
+      <div className="wrapper">
+        <div className="container">
+          <ScrollToTop />
+          {cookies.access && <Navbar user={user} />}
+          {/* <Navbar user={user} /> */}
+          <main className="main-content">
+            <Outlet />
+          </main>
+        </div>
       </div>
     );
   }
 
   const router = createBrowserRouter([
     {
-      element: <Layout />,
+      path: "/",
+      element: <LandingPageLayout />,
       children: [
         {
-          path: "/",
-          element: user ? <Dashboard /> : <Home />,
+          index: true,
+          element: <Home />,
         },
         {
+          path: "login",
+          element: <Login setUser={setUser} />,
+        },
+      ],
+    },
+    {
+      path: "/",
+      element: <BaseLayout />,
+      children: [
+        {
           path: "/dashboard",
-          element: <Dashboard />,
+          element: (
+            <ProtectedRoute>
+              <Dashboard user={user} />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "/transactions",
-          element: <Transactions />,
+          element: (
+            <ProtectedRoute>
+              <Transactions user={user} />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/accounts",
+          element: (
+            <ProtectedRoute>
+              <Accounts user={user} />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "/budgets",
-          element: <Budgets />,
+          element: (
+            <ProtectedRoute>
+              <Budgets user={user} />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "/reports",
-          element: <Reports />,
+          element: (
+            <ProtectedRoute>
+              <Reports user={user} />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "/vaults",
-          element: <Vaults />,
+          element: (
+            <ProtectedRoute>
+              <Vaults user={user} />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "/credit-cards",
-          element: <CreditCards />,
+          element: (
+            <ProtectedRoute>
+              <CreditCards user={user} />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "/investments",
-          element: <Investments />,
+          element: (
+            <ProtectedRoute>
+              <Investments user={user} />
+            </ProtectedRoute>
+          ),
         },
-        // {
-        //   path: "/dashboard",
-        //   element: (
-        //     <ProtectedRoute>
-        //       <Dashboard user={user} setUser={setUser} />
-        //     </ProtectedRoute>
-        //   ),
-        // },
-        // {
-        //   path: "/login",
-        //   element: <Login setUser={setUser} />,
-        // },
-        // {
-        //   path: "/logout",
-        //   element: <Logout setUser={setUser} />,
-        // },
+        {
+          path: "/settings",
+          element: (
+            <ProtectedRoute>
+              <Settings user={user} />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "/logout",
+          element: <Logout setUser={setUser} removeCookies={removeCookies} />,
+        },
+        {
+          path: "*",
+          element: <NotFound />,
+        },
         // {
         //   path: "/register",
         //   element: <RegisterAndLogout />,

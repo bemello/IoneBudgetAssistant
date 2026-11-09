@@ -35,6 +35,7 @@ urlpatterns = [
     path("api/transaction/", include("transaction.urls")),
     path("api/savings/", include("vault.urls")),
     path("api/report/", include("report.urls")),
+    path("api/investment/", include("investment.urls")),
 ]
 
 if settings.DEBUG:

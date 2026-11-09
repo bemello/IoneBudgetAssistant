@@ -1,10 +1,9 @@
-from rest_framework import status
-from django.core.exceptions import ValidationError
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import Sum, DecimalField, DateField, Count, F
+from django.db.models.functions import Cast
+from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
-from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -29,39 +28,65 @@ class VaultViewSet(viewsets.ModelViewSet):
         """Create a new vault"""
         serializer.save(user=self.request.user)
 
-    @extend_schema(description="Get the stats of a vault")
-    @action(detail=True, methods=["get"], url_path="stats")
-    def stats(self, request, pk):
-        """Get the stats of a vault"""
+    @extend_schema(
+        description="Get vaults statistics",
+        parameters=[
+            OpenApiParameter(
+                "vault_id",
+                OpenApiTypes.INT,
+                required=False,
+                description="Filter by vault id",
+            ),            
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="stats")
+    def stats(self, request):
+        """Get the stats of the vaults"""
+        queryset = Vault.objects.filter(user=request.user)
 
-        try:
-            vault = Vault.objects.filter(user=request.user).get(pk=pk)
-        except Vault.DoesNotExist:
-            return Response({"error": "Vault not found"}, status=status.HTTP_404_NOT_FOUND)
-        total_contributions = VaultContributions.objects.filter(vault=vault).aggregate(Sum("amount"))
-        percentage_complete = (total_contributions["amount__sum"] / vault.target_amount) * 100
-        days_remaining = (vault.target_date - timezone.now().date()).days
+        vault_id = request.query_params.get("vault_id", None)
+
+        if vault_id:
+            queryset = queryset.filter(pk=vault_id)
+
+        vaults_breakdown = list(
+            queryset.values("name", "target_amount", "target_date")
+            .annotate(
+                total_contributed = Sum("vault_contributions__transaction__amount"),
+                total_contributions = Count("vault_contributions"),
+            )
+        )
+
+        total_contributed = (
+            queryset.aggregate(
+                total_contributed = Sum("vault_contributions__transaction__amount"),
+            )
+        )
+
+        for item in vaults_breakdown:
+            item["progress"] = (item["total_contributed"] / item["target_amount"]) * 100
+            item["remaining_days"] = (item["target_date"] - timezone.now().date()).days
 
         return Response(
             {
-                "goal": vault.target_amount,
-                "total_contributed": total_contributions["amount__sum"],
-                "percentage_complete": percentage_complete,
-                "deadline": vault.target_date,
-                "days_remaining": days_remaining,
+                "total_contributed": total_contributed["total_contributed"] or 0,
+                "vaults": vaults_breakdown
             }
         )
 
     @action(detail=True, methods=["post"], url_path="contribute", serializer_class=VaultContributionsSerializer)
-    def contribute(self, request):
+    def contribute(self, request, pk):
         """Contribute to a vault"""
-        vault = self.get_object()
-        serializer = VaultContributionsSerializer(data=request.data, context={"request": request})
+        try:
+            vault = Vault.objects.filter(user=request.user).get(pk=pk)
+        except Vault.DoesNotExist:
+            return Response({"error": "Vault not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        serializer = VaultContributionsSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         serializer.save(user=self.request.user, vault=vault)
 
-        return Response({"message": "Contribution added successfully"})
+        return Response(serializer.data)
 
     @extend_schema(
         description="Get vault contributions",
@@ -80,7 +105,7 @@ class VaultViewSet(viewsets.ModelViewSet):
 
         pk = request.query_params.get("vault_id", None)
         vaults = Vault.objects.filter(user=self.request.user)
-        contributions = VaultContributions.objects.filter(user=self.request.user).order_by("-date")
+        contributions = VaultContributions.objects.filter(user=self.request.user).order_by("-transaction__date")
 
         if pk:
             try:
@@ -90,12 +115,13 @@ class VaultViewSet(viewsets.ModelViewSet):
                 return Response({"error": "Vault not found"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(
-            {
-                "id": contribution.id,
-                "vault_name": contribution.vault.name,
-                "source_account_name": contribution.source_account.name,
-                "amount": contribution.amount,
-                "date": contribution.date,
-            }
-            for contribution in contributions
+            VaultContributionsSerializer(contributions, many=True).data
+            # {
+            #     "id": contribution.id,
+            #     "vault_name": contribution.vault.name,
+            #     "account_name": contribution.account.name,
+            #     "amount": contribution.transaction.amount,
+            #     "date": contribution.transaction.date,
+            # }
+            # for contribution in contributions
         )

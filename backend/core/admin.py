@@ -7,10 +7,10 @@ from core import models
 
 class UserAdmin(BaseUserAdmin):
     ordering = ["id"]
-    list_display = ["id", "email", "name", "surname", "currency"]
+    list_display = ["id", "email", "name", "surname", "currency", "starting_date"]
     list_display_links = ["id", "email"]
     fieldsets = (
-        (None, {"fields": ("id", "email", "password", "name", "surname", "currency", "profile_picture")}),
+        (None, {"fields": ("id", "email", "password", "name", "surname", "currency", "profile_picture", "starting_date")}),
         (
             _("Permissions"),
             {
@@ -35,6 +35,7 @@ class UserAdmin(BaseUserAdmin):
                     "password2",
                     "name",
                     "surname",
+                    "starting_date",
                     "currency",
                     "profile_picture",
                     "is_active",
@@ -56,8 +57,8 @@ class AccessHistoryAdmin(admin.ModelAdmin):
 
 
 class BaseModelAdmin(admin.ModelAdmin):
-    list_display = ("id", "__str__")
-    list_display_links = ("id", "__str__")
+    list_display = ("id", "user", "__str__")
+    list_display_links = ("id", "user", "__str__")
     ordering = ["id"]
     readonly_fields = ("id",)
 
@@ -65,9 +66,14 @@ class BaseModelAdmin(admin.ModelAdmin):
 admin.site.register(models.User, UserAdmin)
 admin.site.register(models.AccessHistory, AccessHistoryAdmin)
 admin.site.register(models.Account, BaseModelAdmin)
+admin.site.register(models.BalanceHistory, BaseModelAdmin)
 admin.site.register(models.Category, BaseModelAdmin)
 admin.site.register(models.CategoryBudget, BaseModelAdmin)
 admin.site.register(models.RecurringRule, BaseModelAdmin)
 admin.site.register(models.Transaction, BaseModelAdmin)
 admin.site.register(models.Vault, BaseModelAdmin)
 admin.site.register(models.VaultContributions, BaseModelAdmin)
+admin.site.register(models.Investment, BaseModelAdmin)
+admin.site.register(models.Stock, BaseModelAdmin)
+admin.site.register(models.Crypto, BaseModelAdmin)
+admin.site.register(models.RealEstate, BaseModelAdmin)

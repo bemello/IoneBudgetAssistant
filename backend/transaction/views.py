@@ -1,13 +1,17 @@
+from datetime import date
 from drf_spectacular.utils import (
     extend_schema_view,
     extend_schema,
     OpenApiParameter,
     OpenApiTypes,
 )
+from django.db.models import Q, Sum, Count, DecimalField, DateField, CharField, IntegerField, Min, Max, Avg, Prefetch
+from django.db.models.functions import Coalesce, TruncMonth, TruncYear, Cast, Substr
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from core.models import Transaction, Category, CategoryBudget
 from transaction.serializers import TransactionSerializer, CategorySerializer, CategoryBudgetSerializer
@@ -47,6 +51,12 @@ from transaction.serializers import TransactionSerializer, CategorySerializer, C
                 description="Filter by recurring status",
                 required=False,
             ),
+            OpenApiParameter(
+                "limit",
+                type=OpenApiTypes.BOOL,
+                description="Limit to 5 the number of transactions returned",
+                required=False,
+            ),
         ],
     ),
     create=extend_schema(
@@ -79,6 +89,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
         type = self.request.query_params.get("type", None)
         date = self.request.query_params.get("date", None)
         is_recurring = self.request.query_params.get("is_recurring", None)
+        limit = self.request.query_params.get("limit", False)
         if account:
             queryset = queryset.filter(account=account)
         if category:
@@ -89,6 +100,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(date=date)
         if is_recurring:
             queryset = queryset.filter(is_recurring=is_recurring)
+
+        queryset = queryset.order_by("-date")
+
+        if limit:
+            queryset = queryset[:5]
+
         return queryset
 
     @extend_schema(
@@ -135,6 +152,24 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 description="Filter by category name",
                 required=False,
             ),
+            OpenApiParameter(
+                "only_expenses",
+                type=OpenApiTypes.BOOL,
+                description="Show only expenses",
+                required=False,
+            ),
+            OpenApiParameter(
+                "start_date",
+                type=OpenApiTypes.DATE,
+                description="Start of date range",
+                required=False,
+            ),
+            OpenApiParameter(
+                "end_date",
+                type=OpenApiTypes.DATE,
+                description="End of date range",
+                required=False,
+            ),
         ],
     ),
     create=extend_schema(
@@ -163,9 +198,24 @@ class CategoryViewSet(viewsets.ModelViewSet):
         """Get categories for the authenticated user"""
         queryset = super().get_queryset().filter(user=self.request.user)
         name = self.request.query_params.get("name", None)
+        only_expenses = self.request.query_params.get("only_expenses", None)
+        start_date = self.request.query_params.get("start_date", None)
+        end_date = self.request.query_params.get("end_date", None)
+
         if name:
             queryset = queryset.filter(name=name)
-        return queryset
+        if only_expenses:
+            queryset = queryset.filter(type="expense")
+        if start_date and end_date:
+            queryset = queryset.prefetch_related(
+                Prefetch("transactions", 
+                    queryset=Transaction.objects.filter(
+                        date__range=(start_date, end_date)
+                    )
+                )
+            )
+
+        return queryset.order_by("name").distinct()
 
     def perform_create(self, serializer):
         """Set the user for the new category"""
@@ -174,6 +224,113 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         """Update a category"""
         serializer.save(user=self.request.user)
+
+    @extend_schema(
+        description="Get categories statistics",
+        parameters=[
+            OpenApiParameter(
+                "name",
+                type=OpenApiTypes.STR,
+                description="Filter by category name",
+                required=False,
+            ),
+            OpenApiParameter(
+                "only_expenses",
+                type=OpenApiTypes.BOOL,
+                description="Show only expenses",
+                required=False,
+            ),
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="stats")
+    def stats(self, request):
+        """Get categories statistics including total spending and budget limit"""
+        queryset = Category.objects.filter(user=request.user).order_by("name")
+        name = self.request.query_params.get("name", None)
+        only_expenses = self.request.query_params.get("only_expenses", False)
+
+        if name:
+            queryset = queryset.filter(name=name)
+        if only_expenses:
+            queryset = queryset.filter(type="expense")
+  
+        category_breakdown = (
+            queryset
+            .values("id", "name", "icon")
+            .annotate(
+                total_transactions=Count("transactions__id", filter=Q(transactions__isnull=True) | (Q(transactions__date__month = date.today().month) & Q(transactions__date__year = date.today().year))),
+                total_expenses=Coalesce(
+                    Sum("transactions__amount", filter=Q(transactions__type="expense") & (Q(transactions__date__month = date.today().month) & Q(transactions__date__year = date.today().year))),
+                    0.0,
+                    output_field=DecimalField(),
+                ),
+                average_expense=Coalesce(
+                    Avg("transactions__amount", filter=Q(transactions__type="expense") & (Q(transactions__date__month = date.today().month) & Q(transactions__date__year = date.today().year))),
+                    0.0,
+                    output_field=DecimalField(),
+                ),
+                lowest_expense=Coalesce(
+                    Min("transactions__amount", filter=Q(transactions__type="expense") & (Q(transactions__date__month = date.today().month) & Q(transactions__date__year = date.today().year))),
+                    0.0,
+                    output_field=DecimalField(),
+                ),
+                highest_expense=Coalesce(
+                    Max("transactions__amount", filter=Q(transactions__type="expense") & (Q(transactions__date__month = date.today().month) & Q(transactions__date__year = date.today().year))),
+                    0.0,
+                    output_field=DecimalField(),
+                ),
+            )
+        )
+
+        for category in category_breakdown:
+            budgets = CategoryBudget.objects.filter(category=category["id"]).values("amount","month","year").order_by("-year","-month")
+            category["budgets"] = budgets
+
+        response_data = {
+            "category": category_breakdown,
+        }
+
+        # Get monthly breakdown
+        month_sql = Cast(
+            Substr(
+                Cast(TruncMonth("transactions__date", output_field=DateField()),output_field=CharField()), 
+                6, 2), 
+            output_field=IntegerField())
+        year_sql = Cast(
+            Substr(
+                Cast(TruncYear("transactions__date", output_field=DateField()),output_field=CharField()), 
+                1, 4), 
+            output_field=IntegerField())
+
+        monthly_breakdown = (
+            queryset
+            .filter(transactions__isnull=False)
+            .values("id","name","icon")
+            .annotate(
+                year=year_sql,
+                month=month_sql,
+                total_transactions=Count("transactions__id"),
+                total_expenses=Coalesce(
+                    Sum(
+                        "transactions__amount",
+                        filter=Q(transactions__type="expense"),
+                    ),
+                    0.0,
+                    output_field=DecimalField(),
+                ),
+            )
+            .order_by("-year", "-month", "name")
+        )
+
+        for item in monthly_breakdown:
+            budget = CategoryBudget.objects.filter(category=item["id"], month__lte=item["month"], year__lte=item["year"]).values("amount").order_by("-year","-month").first()
+            item["budget"] = budget["amount"] or 0
+
+        response_data.update({"monthly_breakdown": monthly_breakdown})
+
+        return Response(
+            response_data
+        )
 
 
 @extend_schema_view(
@@ -234,7 +391,7 @@ class CategoryBudgetViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(month=month)
         if year:
             queryset = queryset.filter(year=year)
-        return queryset
+        return queryset.order_by("-year", "-month", "category__name")
 
     def perform_create(self, serializer):
         """Set the user for the new category budget"""

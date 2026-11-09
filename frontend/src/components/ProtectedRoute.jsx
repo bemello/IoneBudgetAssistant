@@ -12,7 +12,7 @@ function ProtectedRoute({ children }) {
   }, []);
 
   const auth = async () => {
-    const token = cookies.get(ACCESS_TOKEN);
+    const token = cookies.access;
     if (!token) {
       setIsAuthorized(false);
       return;

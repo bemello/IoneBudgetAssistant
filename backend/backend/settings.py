@@ -28,14 +28,13 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "changeme")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.environ.get("DEBUG", 0)))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 ALLOWED_HOSTS.extend(
     filter(
         None,
         os.environ.get("ALLOWED_HOSTS", "").split(","),
     )
 )
-
 
 # Application definition
 
@@ -58,11 +57,13 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",
+    "yfinance",
     "user",
     "account.apps.AccountConfig",
     "transaction",
     "vault",
     "report",
+    "investment",
 ]
 SITE_ID = 1
 

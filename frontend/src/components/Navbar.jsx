@@ -1,20 +1,18 @@
 import { NavLink } from "react-router-dom";
+import { IoneLogo } from "../assets/Logos";
 
 function Navbar({ user }) {
   return (
-    <nav className="navbar">
+    <nav className="navbar frosted-glass">
       <NavLink to="/">
         <div className="brand-header">
-          <div className="brand-name">
-            <div className="brand-title">Ione</div>
-            <div className="brand-subtitle">Budget Assistant</div>
-          </div>
+          <IoneLogo />
         </div>
       </NavLink>
       <ul className="nav-list">
         <li className="nav-item">
           <div className="spacer"></div>
-          <NavLink to="/dashboard">
+          <NavLink to="/dashboard" end>
             <span className="material-symbols-outlined">dashboard</span>
             <span>Dashboard</span>
           </NavLink>
@@ -28,16 +26,9 @@ function Navbar({ user }) {
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
-          <a href="#">
-            <span className="material-symbols-outlined">payments</span>
-            <span>Payments</span>
-          </a>
-        </li>
-        <li className="nav-item">
-          <div className="spacer"></div>
           <NavLink to="/budgets">
-            <span className="material-symbols-outlined">money_range</span>
-            <span>Budgets</span>
+            <span className="material-symbols-outlined">view_cozy</span>
+            <span>Categories</span>
           </NavLink>
         </li>
         <li className="nav-item">
@@ -51,7 +42,14 @@ function Navbar({ user }) {
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
-          <NavLink to="/cards">
+          <NavLink to="/vaults">
+            <span className="material-symbols-outlined">savings</span>
+            <span>Vaults</span>
+          </NavLink>
+        </li>
+        <li className="nav-item">
+          <div className="spacer"></div>
+          <NavLink to="/credit-cards">
             <span className="material-symbols-outlined">payment</span>
             <span>Credit Cards</span>
           </NavLink>
@@ -65,28 +63,36 @@ function Navbar({ user }) {
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
-          <NavLink to="/vaults">
-            <span className="material-symbols-outlined">savings</span>
-            <span>Vaults</span>
-          </NavLink>
+          <button type="button" className="coming-soon">
+            <span className="material-symbols-outlined">payments</span>
+            <span>Payments</span>
+          </button>
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
-          <NavLink to="/reports">
+          <button type="button" className="coming-soon">
             <span className="material-symbols-outlined">insert_chart</span>
             <span>Reports</span>
-          </NavLink>
+          </button>
+          {/* <NavLink to="/reports">
+            <span className="material-symbols-outlined">insert_chart</span>
+            <span>Reports</span>
+          </NavLink> */}
         </li>
         <li className="nav-item">
           <div className="spacer"></div>
-          <NavLink to="/settings">
+          <button type="button" className="coming-soon">
             <span className="material-symbols-outlined">settings</span>
             <span>Settings</span>
-          </NavLink>
+          </button>
+          {/* <NavLink to="/settings">
+            <span className="material-symbols-outlined">settings</span>
+            <span>Settings</span>
+          </NavLink> */}
         </li>
       </ul>
       <div className="nav-footer">
-        <NavLink to="/logout" className="btn symbol link">
+        <NavLink to="/logout" className="btn symbol link full">
           <span className="material-symbols-outlined">logout</span>
           <span className="label">Logout</span>
         </NavLink>
